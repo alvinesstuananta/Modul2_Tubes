@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../models/traffic_model.dart';
 import '../pages/halaman_traffic.dart';
 import '../pages/halaman_lost_found.dart';
 import '../pages/halaman_fasilitas.dart';
@@ -37,33 +40,45 @@ class _KerangkaNavigasiState extends State<KerangkaNavigasi> {
     final double lebar = MediaQuery.of(context).size.width;
     final bool layarLebar = lebar >= 600;
 
+    // Hanya membaca totalLaporanMacet agar hanya badge yang di-rebuild
+    final totalMacet = context.select<TrafficModel, int>(
+      (m) => m.totalLaporanMacet,
+    );
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_judul[_indeksTerpilih]),
-        elevation: 2,
-      ),
+      appBar: AppBar(title: Text(_judul[_indeksTerpilih]), elevation: 2),
       drawer: _buatDrawer(),
-      body: layarLebar ? _tataLetakLebar() : _halaman[_indeksTerpilih],
-      bottomNavigationBar: layarLebar ? null : _buatBilahBawah(),
+      body: layarLebar
+          ? _tataLetakLebar(totalMacet)
+          : IndexedStack(index: _indeksTerpilih, children: _halaman),
+      bottomNavigationBar: layarLebar ? null : _buatBilahBawah(totalMacet),
     );
   }
 
-  Widget _buatBilahBawah() {
+  Widget _buatBilahBawah(int totalMacet) {
     return NavigationBar(
       selectedIndex: _indeksTerpilih,
       onDestinationSelected: _pilihTujuan,
-      destinations: const [
+      destinations: [
         NavigationDestination(
-          icon: Icon(Icons.traffic_outlined),
-          selectedIcon: Icon(Icons.traffic),
+          icon: Badge(
+            label: Text('$totalMacet'),
+            isLabelVisible: totalMacet > 0,
+            child: const Icon(Icons.traffic_outlined),
+          ),
+          selectedIcon: Badge(
+            label: Text('$totalMacet'),
+            isLabelVisible: totalMacet > 0,
+            child: const Icon(Icons.traffic),
+          ),
           label: 'Lalu Lintas',
         ),
-        NavigationDestination(
+        const NavigationDestination(
           icon: Icon(Icons.find_in_page_outlined),
           selectedIcon: Icon(Icons.find_in_page),
           label: 'Lost & Found',
         ),
-        NavigationDestination(
+        const NavigationDestination(
           icon: Icon(Icons.build_outlined),
           selectedIcon: Icon(Icons.build),
           label: 'Fasilitas',
@@ -72,7 +87,7 @@ class _KerangkaNavigasiState extends State<KerangkaNavigasi> {
     );
   }
 
-  Widget _tataLetakLebar() {
+  Widget _tataLetakLebar(int totalMacet) {
     return Row(
       children: [
         NavigationRail(
@@ -83,18 +98,26 @@ class _KerangkaNavigasiState extends State<KerangkaNavigasi> {
             padding: EdgeInsets.symmetric(vertical: 16),
             child: Icon(Icons.security, size: 36, color: Colors.red),
           ),
-          destinations: const [
+          destinations: [
             NavigationRailDestination(
-              icon: Icon(Icons.traffic_outlined),
-              selectedIcon: Icon(Icons.traffic),
-              label: Text('Lalu Lintas'),
+              icon: Badge(
+                label: Text('$totalMacet'),
+                isLabelVisible: totalMacet > 0,
+                child: const Icon(Icons.traffic_outlined),
+              ),
+              selectedIcon: Badge(
+                label: Text('$totalMacet'),
+                isLabelVisible: totalMacet > 0,
+                child: const Icon(Icons.traffic),
+              ),
+              label: const Text('Lalu Lintas'),
             ),
-            NavigationRailDestination(
+            const NavigationRailDestination(
               icon: Icon(Icons.find_in_page_outlined),
               selectedIcon: Icon(Icons.find_in_page),
               label: Text('Lost & Found'),
             ),
-            NavigationRailDestination(
+            const NavigationRailDestination(
               icon: Icon(Icons.build_outlined),
               selectedIcon: Icon(Icons.build),
               label: Text('Fasilitas'),
@@ -102,7 +125,9 @@ class _KerangkaNavigasiState extends State<KerangkaNavigasi> {
           ],
         ),
         const VerticalDivider(thickness: 1, width: 1),
-        Expanded(child: _halaman[_indeksTerpilih]),
+        Expanded(
+          child: IndexedStack(index: _indeksTerpilih, children: _halaman),
+        ),
       ],
     );
   }
@@ -164,14 +189,6 @@ class _KerangkaNavigasiState extends State<KerangkaNavigasi> {
           onTap: () {
             Navigator.pop(context);
             Navigator.pushNamed(context, AppRoutes.pengaturan);
-          },
-        ),
-        ListTile(
-          leading: const Icon(Icons.bug_report, color: Colors.orange),
-          title: const Text('Uji Route Salah'),
-          onTap: () {
-            Navigator.pop(context);
-            Navigator.pushNamed(context, '/halaman-salah');
           },
         ),
       ],

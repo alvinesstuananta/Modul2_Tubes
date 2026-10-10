@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../models/traffic_model.dart';
 
 class HalamanTraffic extends StatelessWidget {
   const HalamanTraffic({super.key});
@@ -33,47 +36,35 @@ class HalamanTraffic extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        Card(
-          child: ListTile(
-            leading: const Icon(Icons.door_sliding, color: Colors.green),
-            title: const Text('Gate Utama (Bojongsoang)'),
-            subtitle: const Text('Lancar • Pintu Buka'),
-            trailing: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.green.shade100,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: const Text(
-                'LANCAR',
-                style: TextStyle(
-                  color: Colors.green,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        ),
-        Card(
-          child: ListTile(
-            leading: const Icon(Icons.door_sliding, color: Colors.amber),
-            title: const Text('Gate 2 (Sukabirus)'),
-            subtitle: const Text('Padat Merayap • Pintu Buka'),
-            trailing: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.amber.shade100,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: const Text(
-                'PADAT',
-                style: TextStyle(
-                  color: Colors.amber,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
+        Consumer<TrafficModel>(
+          builder: (context, traffic, child) {
+            return Column(
+              children: traffic.statusGate.entries.map((entry) {
+                final isMacet =
+                    entry.value == 'Padat' || entry.value == 'Padat Merayap';
+                return Card(
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.door_sliding,
+                      color: isMacet ? Colors.amber : Colors.green,
+                    ),
+                    title: Text(entry.key),
+                    subtitle: Text('Status: ${entry.value}'),
+                    trailing: ElevatedButton(
+                      onPressed: () {
+                        final statusBaru = isMacet ? 'Lancar' : 'Padat';
+                        context.read<TrafficModel>().ubahStatusGate(
+                          entry.key,
+                          statusBaru,
+                        );
+                      },
+                      child: Text(isMacet ? 'Ubah Lancar' : 'Laporkan Padat'),
+                    ),
+                  ),
+                );
+              }).toList(),
+            );
+          },
         ),
       ],
     );

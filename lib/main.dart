@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import 'models/traffic_model.dart';
+import 'models/lost_found_model.dart';
 import 'navigation/app_routes.dart';
 
 void main() {
-  runApp(const AplikasiTelUControl());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => TrafficModel()),
+        ChangeNotifierProvider(create: (_) => LostFoundModel()),
+      ],
+      child: const AplikasiTelUControl(),
+    ),
+  );
 }
 
 class AplikasiTelUControl extends StatelessWidget {
